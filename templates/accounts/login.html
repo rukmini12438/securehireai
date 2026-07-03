@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SecureHire AI — Log In</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0E1A2B;
+    --surface: #152238;
+    --surface-light: #1B2A45;
+    --border: #22314A;
+    --text: #EAEDF2;
+    --muted: #8B96A8;
+    --gold: #D4A24E;
+    --teal: #4FA490;
+    --error: #E0685A;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--ink);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+  }
+
+  .panel-left {
+    flex: 1;
+    background: linear-gradient(160deg, #0E1A2B 0%, #0A1420 100%);
+    padding: 64px 56px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .brand {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    color: var(--teal);
+    text-transform: uppercase;
+  }
+
+  .headline {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(32px, 4vw, 46px);
+    font-weight: 600;
+    line-height: 1.15;
+    margin-top: 24px;
+    max-width: 420px;
+  }
+
+  .headline em { font-style: italic; color: var(--gold); }
+
+  .footnote {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 340px;
+  }
+
+  .panel-right {
+    flex: 1;
+    max-width: 480px;
+    background: var(--surface);
+    padding: 64px 56px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-left: 1px solid var(--border);
+  }
+
+  .form-eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .form-title {
+    font-family: 'Fraunces', serif;
+    font-size: 30px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .form-subtitle { color: var(--muted); font-size: 14px; margin-bottom: 36px; }
+
+  .field { margin-bottom: 18px; }
+
+  .field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+
+  .field input {
+    width: 100%;
+    background: var(--ink);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+
+  .field input:focus { border-color: var(--teal); }
+  .field input::placeholder { color: #57647A; }
+
+  .submit-btn {
+    width: 100%;
+    background: var(--gold);
+    color: #0E1A2B;
+    border: none;
+    border-radius: 8px;
+    padding: 14px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: filter 0.15s ease;
+  }
+
+  .submit-btn:hover { filter: brightness(1.08); }
+  .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .message {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    display: none;
+  }
+
+  .message.error {
+    display: block;
+    background: rgba(224, 104, 90, 0.1);
+    border: 1px solid var(--error);
+    color: #F0A99E;
+  }
+
+  .message.success {
+    display: block;
+    background: rgba(79, 164, 144, 0.1);
+    border: 1px solid var(--teal);
+    color: #8FCFC0;
+  }
+
+  .signup-link {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .signup-link a { color: var(--gold); text-decoration: none; }
+
+  .welcome-box {
+    display: none;
+    text-align: center;
+    padding: 40px 24px;
+    background: var(--surface-light);
+    border: 1px solid var(--teal);
+    border-radius: 12px;
+  }
+
+  .welcome-box .role-tag {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--teal);
+    background: rgba(79, 164, 144, 0.12);
+    padding: 4px 10px;
+    border-radius: 999px;
+    margin-bottom: 14px;
+  }
+
+  .welcome-box h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+
+  .welcome-box p { color: var(--muted); font-size: 13px; }
+
+  @media (max-width: 900px) {
+    body { flex-direction: column; }
+    .panel-left { padding: 40px 32px; }
+    .panel-right { max-width: 100%; padding: 40px 32px; border-left: none; border-top: 1px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+
+  <div class="panel-left">
+    <div>
+      <div class="brand">SecureHire AI</div>
+      <h1 class="headline">Good to see you <em>again.</em></h1>
+    </div>
+    <p class="footnote">Verified candidates. Verified recruiters. No noise in between.</p>
+  </div>
+
+  <div class="panel-right">
+    <div id="loginSection">
+      <div class="form-eyebrow">Welcome back</div>
+      <h2 class="form-title">Log in to your account</h2>
+      <p class="form-subtitle">Enter your credentials to continue</p>
+
+      <form id="loginForm">
+        <div class="field">
+          <label for="username">Username</label>
+          <input type="text" id="username" placeholder="Your username" required>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="Your password" required>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">Log in</button>
+        <div class="message" id="message"></div>
+      </form>
+
+      <div class="signup-link">Don't have an account? <a href="/api/accounts/register-page/">Sign up</a></div>
+    </div>
+
+    <div class="welcome-box" id="welcomeBox">
+      <span class="role-tag" id="roleTag"></span>
+      <h3 id="welcomeName"></h3>
+      <p id="welcomeEmail"></p>
+    </div>
+  </div>
+
+<script>
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const btn = document.getElementById('submitBtn');
+    const msg = document.getElementById('message');
+    btn.disabled = true;
+    btn.textContent = 'Logging in...';
+    msg.className = 'message';
+    msg.textContent = '';
+
+    const payload = {
+      username: document.getElementById('username').value,
+      password: document.getElementById('password').value
+    };
+
+    try {
+      const res = await fetch('/api/accounts/login/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        localStorage.setItem('access_token', data.access);
+        localStorage.setItem('refresh_token', data.refresh);
+
+        document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('welcomeBox').style.display = 'block';
+        document.getElementById('roleTag').textContent = data.user.role;
+        document.getElementById('welcomeName').textContent = `Welcome, ${data.user.username}`;
+        document.getElementById('welcomeEmail').textContent = data.user.email;
+      } else {
+        msg.className = 'message error';
+        msg.textContent = data.detail || 'Invalid username or password.';
+        btn.disabled = false;
+        btn.textContent = 'Log in';
+      }
+    } catch (err) {
+      msg.className = 'message error';
+      msg.textContent = 'Something went wrong. Check your connection and try again.';
+      btn.disabled = false;
+      btn.textContent = 'Log in';
+    }
+  });
+</script>
+
+</body>
+</html>

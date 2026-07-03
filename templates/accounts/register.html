@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SecureHire AI — Create Account</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0E1A2B;
+    --surface: #152238;
+    --surface-light: #1B2A45;
+    --border: #22314A;
+    --text: #EAEDF2;
+    --muted: #8B96A8;
+    --gold: #D4A24E;
+    --teal: #4FA490;
+    --error: #E0685A;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--ink);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+  }
+
+  .panel-left {
+    flex: 1;
+    background: linear-gradient(160deg, #0E1A2B 0%, #0A1420 100%);
+    padding: 64px 56px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .brand {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    color: var(--teal);
+    text-transform: uppercase;
+  }
+
+  .headline {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(32px, 4vw, 46px);
+    font-weight: 600;
+    line-height: 1.15;
+    margin-top: 24px;
+    max-width: 420px;
+  }
+
+  .headline em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .pipeline {
+    margin-top: 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .stage {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: relative;
+    padding-bottom: 40px;
+  }
+
+  .stage:last-child { padding-bottom: 0; }
+
+  .stage::before {
+    content: '';
+    position: absolute;
+    left: 7px;
+    top: 22px;
+    width: 1px;
+    height: calc(100% - 10px);
+    background: var(--border);
+  }
+
+  .stage:last-child::before { display: none; }
+
+  .dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+    z-index: 1;
+  }
+
+  .stage.active .dot {
+    border-color: var(--gold);
+    background: var(--gold);
+    box-shadow: 0 0 0 4px rgba(212, 162, 78, 0.15);
+  }
+
+  .stage-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+  }
+
+  .stage.active .stage-label { color: var(--text); }
+
+  .footnote {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 340px;
+  }
+
+  .panel-right {
+    flex: 1;
+    max-width: 560px;
+    background: var(--surface);
+    padding: 64px 56px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-left: 1px solid var(--border);
+  }
+
+  .form-eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .form-title {
+    font-family: 'Fraunces', serif;
+    font-size: 30px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .form-subtitle {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 36px;
+  }
+
+  .role-select {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+
+  .role-card {
+    background: var(--surface-light);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 16px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+  }
+
+  .role-card:hover { border-color: var(--muted); }
+
+  .role-card.selected {
+    border-color: var(--teal);
+    background: rgba(79, 164, 144, 0.08);
+  }
+
+  .role-card .icon { font-size: 20px; margin-bottom: 8px; display: block; }
+  .role-card .label { font-weight: 600; font-size: 14px; }
+  .role-card .desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .field { margin-bottom: 18px; }
+
+  .field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+
+  .field input {
+    width: 100%;
+    background: var(--ink);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+
+  .field input:focus {
+    border-color: var(--teal);
+  }
+
+  .field input::placeholder { color: #57647A; }
+
+  .submit-btn {
+    width: 100%;
+    background: var(--gold);
+    color: #0E1A2B;
+    border: none;
+    border-radius: 8px;
+    padding: 14px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: filter 0.15s ease;
+  }
+
+  .submit-btn:hover { filter: brightness(1.08); }
+  .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .message {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    display: none;
+  }
+
+  .message.error {
+    display: block;
+    background: rgba(224, 104, 90, 0.1);
+    border: 1px solid var(--error);
+    color: #F0A99E;
+  }
+
+  .message.success {
+    display: block;
+    background: rgba(79, 164, 144, 0.1);
+    border: 1px solid var(--teal);
+    color: #8FCFC0;
+  }
+
+  .login-link {
+    text-align: center;
+    margin-top: 24px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .login-link a { color: var(--gold); text-decoration: none; }
+
+  @media (max-width: 900px) {
+    body { flex-direction: column; }
+    .panel-left { padding: 40px 32px; }
+    .panel-right { max-width: 100%; padding: 40px 32px; border-left: none; border-top: 1px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+
+  <div class="panel-left">
+    <div>
+      <div class="brand">SecureHire AI</div>
+      <h1 class="headline">Every hire starts with <em>one verified step.</em></h1>
+    </div>
+
+    <div class="pipeline">
+      <div class="stage active">
+        <div class="dot"></div>
+        <div class="stage-label">Applied — you are here</div>
+      </div>
+      <div class="stage">
+        <div class="dot"></div>
+        <div class="stage-label">Verified</div>
+      </div>
+      <div class="stage">
+        <div class="dot"></div>
+        <div class="stage-label">Hired</div>
+      </div>
+    </div>
+
+    <p class="footnote">Built for candidates and recruiters who want fewer fake profiles and faster, verified matches.</p>
+  </div>
+
+  <div class="panel-right">
+    <div class="form-eyebrow">Create account</div>
+    <h2 class="form-title">Let's get you set up</h2>
+    <p class="form-subtitle">Choose how you'll use SecureHire AI</p>
+
+    <div class="role-select">
+      <div class="role-card selected" data-role="candidate" id="roleCandidate">
+        <span class="icon">🎓</span>
+        <div class="label">Candidate</div>
+        <div class="desc">Looking for a job</div>
+      </div>
+      <div class="role-card" data-role="recruiter" id="roleRecruiter">
+        <span class="icon">🧭</span>
+        <div class="label">Recruiter</div>
+        <div class="desc">Hiring for a team</div>
+      </div>
+    </div>
+
+    <form id="registerForm">
+      <div class="field">
+        <label for="username">Username</label>
+        <input type="text" id="username" placeholder="e.g. rukmini_dev" required>
+      </div>
+      <div class="field">
+        <label for="email">Email address</label>
+        <input type="email" id="email" placeholder="you@example.com" required>
+      </div>
+      <div class="field">
+        <label for="phone">Phone number</label>
+        <input type="text" id="phone" placeholder="9999999999">
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="At least 8 characters" required>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submitBtn">Create account</button>
+      <div class="message" id="message"></div>
+    </form>
+
+    <div class="login-link">Already have an account? <a href="/api/accounts/login/">Log in</a></div>
+  </div>
+
+<script>
+  let selectedRole = 'candidate';
+
+  document.getElementById('roleCandidate').addEventListener('click', () => {
+    selectedRole = 'candidate';
+    document.getElementById('roleCandidate').classList.add('selected');
+    document.getElementById('roleRecruiter').classList.remove('selected');
+  });
+
+  document.getElementById('roleRecruiter').addEventListener('click', () => {
+    selectedRole = 'recruiter';
+    document.getElementById('roleRecruiter').classList.add('selected');
+    document.getElementById('roleCandidate').classList.remove('selected');
+  });
+
+  document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const btn = document.getElementById('submitBtn');
+    const msg = document.getElementById('message');
+    btn.disabled = true;
+    btn.textContent = 'Creating account...';
+    msg.className = 'message';
+    msg.textContent = '';
+
+    const payload = {
+      username: document.getElementById('username').value,
+      email: document.getElementById('email').value,
+      phone_number: document.getElementById('phone').value,
+      password: document.getElementById('password').value,
+      role: selectedRole
+    };
+
+    try {
+      const res = await fetch('/api/accounts/register/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        localStorage.setItem('access_token', data.access);
+        localStorage.setItem('refresh_token', data.refresh);
+        msg.className = 'message success';
+        msg.textContent = `Welcome, ${data.user.username}! Account created as ${data.user.role}.`;
+        btn.textContent = 'Account created ✓';
+      } else {
+        msg.className = 'message error';
+        msg.textContent = Object.values(data).flat().join(' ');
+        btn.disabled = false;
+        btn.textContent = 'Create account';
+      }
+    } catch (err) {
+      msg.className = 'message error';
+      msg.textContent = 'Something went wrong. Check your connection and try again.';
+      btn.disabled = false;
+      btn.textContent = 'Create account';
+    }
+  });
+</script>
+
+</body>
+</html>
