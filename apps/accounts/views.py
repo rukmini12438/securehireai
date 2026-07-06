@@ -18,6 +18,7 @@ class RegisterView(generics.CreateAPIView):
         user = serializer.save()
 
         refresh = RefreshToken.for_user(user)
+        refresh['role'] = user.role
 
         return Response({
             'user': UserSerializer(user).data,
@@ -25,8 +26,13 @@ class RegisterView(generics.CreateAPIView):
             'access': str(refresh.access_token),
         }, status=status.HTTP_201_CREATED)
 
-
 class LoginSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token['role'] = user.role
+        return token
+
     def validate(self, attrs):
         data = super().validate(attrs)
         data['user'] = UserSerializer(self.user).data
@@ -42,3 +48,7 @@ def register_page(request):
 
 def login_page(request):
     return render(request, 'accounts/login.html')
+
+
+def home_page(request):
+    return render(request, 'home.html')

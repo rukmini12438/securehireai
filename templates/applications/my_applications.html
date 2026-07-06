@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SecureHire AI — My Applications</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0E1A2B;
+    --surface: #152238;
+    --surface-light: #1B2A45;
+    --border: #22314A;
+    --text: #EAEDF2;
+    --muted: #8B96A8;
+    --gold: #D4A24E;
+    --teal: #4FA490;
+    --error: #E0685A;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--ink);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 56px 24px;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--teal);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 34px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 36px; }
+  .app-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 16px;
+  }
+  .job-title {
+    font-family: 'Fraunces', serif;
+    font-size: 19px;
+    font-weight: 600;
+  }
+  .job-company { color: var(--gold); font-size: 13px; margin-top: 2px; }
+  .applied-date { color: var(--muted); font-size: 12px; margin-top: 6px; }
+
+  .tracker { display: flex; align-items: center; margin: 22px 0 8px; }
+  .tracker-step { display: flex; flex-direction: column; align-items: center; flex: 1; position: relative; }
+  .tracker-dot {
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--surface-light); border: 2px solid var(--border);
+    z-index: 1;
+  }
+  .tracker-line {
+    position: absolute; top: 7px; left: 50%; width: 100%; height: 2px;
+    background: var(--border); z-index: 0;
+  }
+  .tracker-step:last-child .tracker-line { display: none; }
+  .tracker-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 8px;
+    text-align: center;
+  }
+  .tracker-step.done .tracker-dot { background: var(--teal); border-color: var(--teal); }
+  .tracker-step.done .tracker-line { background: var(--teal); }
+  .tracker-step.done .tracker-label { color: var(--teal); }
+  .tracker-step.current .tracker-dot { background: var(--gold); border-color: var(--gold); box-shadow: 0 0 0 4px rgba(212,162,78,0.15); }
+  .tracker-step.current .tracker-label { color: var(--gold); }
+  .tracker-step.rejected .tracker-dot { background: var(--error); border-color: var(--error); }
+  .tracker-step.rejected .tracker-label { color: var(--error); }
+
+  .empty, .loading {
+    text-align: center;
+    color: var(--muted);
+    padding: 60px 0;
+    font-size: 14px;
+  }
+  .notice {
+    background: rgba(224, 104, 90, 0.1);
+    border: 1px solid var(--error);
+    color: #F0A99E;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 24px;
+    display: none;
+  }
+  .notice a { color: var(--gold); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Your applications</div>
+  <h1>Application tracker</h1>
+  <p class="subtitle">See where each application stands.</p>
+
+  <div class="notice" id="loginNotice">
+    You are not logged in. <a href="/api/accounts/login-page/">Log in</a> to see your applications.
+  </div>
+
+  <div id="appsContainer">
+    <div class="loading">Loading your applications...</div>
+  </div>
+</div>
+
+<script>
+  const token = localStorage.getItem('access_token');
+  const container = document.getElementById('appsContainer');
+  const steps = ['pending', 'reviewed', 'shortlisted'];
+
+  if (!token) {
+    document.getElementById('loginNotice').style.display = 'block';
+    container.innerHTML = '';
+  } else {
+    loadApplications();
+  }
+
+  function renderTracker(status) {
+    if (status === 'rejected') {
+      return `
+        <div class="tracker">
+          <div class="tracker-step done"><div class="tracker-dot"></div><div class="tracker-line"></div><div class="tracker-label">Applied</div></div>
+          <div class="tracker-step rejected"><div class="tracker-dot"></div><div class="tracker-label">Rejected</div></div>
+        </div>`;
+    }
+    const currentIndex = steps.indexOf(status);
+    return `
+      <div class="tracker">
+        ${steps.map((s, i) => {
+          let cls = '';
+          if (i < currentIndex) cls = 'done';
+          else if (i === currentIndex) cls = 'current';
+          return `<div class="tracker-step ${cls}"><div class="tracker-dot"></div><div class="tracker-line"></div><div class="tracker-label">${s}</div></div>`;
+        }).join('')}
+      </div>`;
+  }
+
+  async function loadApplications() {
+    try {
+      const res = await fetch('/api/applications/mine/', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+
+      if (res.status === 401 || res.status === 403) {
+        document.getElementById('loginNotice').style.display = 'block';
+        document.getElementById('loginNotice').textContent = 'You do not have permission to view this page.';
+        container.innerHTML = '';
+        return;
+      }
+
+      const apps = await res.json();
+
+      if (!apps.length) {
+        container.innerHTML = '<div class="empty">You have not applied to any jobs yet. <a href="/api/jobs/browse-jobs-page/" style="color: var(--gold);">Browse open roles</a></div>';
+        return;
+      }
+
+      container.innerHTML = apps.map(app => `
+        <div class="app-card">
+          <div class="job-title">${app.job_title}</div>
+          <div class="job-company">${app.company_name}</div>
+          <div class="applied-date">Applied on ${new Date(app.applied_at).toLocaleDateString()}</div>
+          ${renderTracker(app.status)}
+        </div>
+      `).join('');
+    } catch (err) {
+      container.innerHTML = '<div class="empty">Could not load your applications. Try refreshing.</div>';
+    }
+  }
+</script>
+</body>
+</html>

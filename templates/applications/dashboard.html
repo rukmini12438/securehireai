@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SecureHire AI — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0E1A2B;
+    --surface: #152238;
+    --surface-light: #1B2A45;
+    --border: #22314A;
+    --text: #EAEDF2;
+    --muted: #8B96A8;
+    --gold: #D4A24E;
+    --teal: #4FA490;
+    --error: #E0685A;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--ink);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 56px 24px;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--teal);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 34px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 36px; }
+  .app-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 16px;
+  }
+  .app-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+  .candidate-name {
+    font-family: 'Fraunces', serif;
+    font-size: 19px;
+    font-weight: 600;
+  }
+  .candidate-email { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .job-ref { color: var(--gold); font-size: 13px; margin-top: 8px; }
+  .cover-letter {
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 14px 0;
+    padding: 12px 14px;
+    background: var(--ink);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .resume-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface-light);
+    border: 1px solid var(--teal);
+    color: var(--teal);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 6px;
+    margin: 10px 0 0;
+  }
+  .resume-link:hover { filter: brightness(1.15); }
+  .no-resume {
+    color: var(--muted);
+    font-size: 12px;
+    margin: 10px 0 0;
+    font-style: italic;
+  }
+  .status-row { display: flex; align-items: center; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .status-badge {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 999px;
+  }
+  .status-pending { background: rgba(212, 162, 78, 0.12); color: var(--gold); }
+  .status-reviewed { background: rgba(79, 164, 144, 0.12); color: var(--teal); }
+  .status-shortlisted { background: rgba(79, 164, 144, 0.25); color: var(--teal); }
+  .status-rejected { background: rgba(224, 104, 90, 0.12); color: var(--error); }
+  .status-select {
+    background: var(--ink);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+  }
+  .save-msg {
+    font-size: 12px;
+    color: var(--teal);
+    display: none;
+  }
+  .empty, .loading {
+    text-align: center;
+    color: var(--muted);
+    padding: 60px 0;
+    font-size: 14px;
+  }
+  .notice {
+    background: rgba(224, 104, 90, 0.1);
+    border: 1px solid var(--error);
+    color: #F0A99E;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 24px;
+    display: none;
+  }
+  .notice a { color: var(--gold); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Recruiter dashboard</div>
+  <h1>Your applicants</h1>
+  <p class="subtitle">Everyone who applied to your job postings.</p>
+
+  <div class="notice" id="loginNotice">
+    You are not logged in. <a href="/api/accounts/login-page/">Log in</a> as a recruiter to view applicants.
+  </div>
+
+  <div id="appsContainer">
+    <div class="loading">Loading applicants...</div>
+  </div>
+</div>
+
+<script>
+  const token = localStorage.getItem('access_token');
+  const container = document.getElementById('appsContainer');
+
+  if (!token) {
+    document.getElementById('loginNotice').style.display = 'block';
+    container.innerHTML = '';
+  } else {
+    loadApplications();
+  }
+
+  async function loadApplications() {
+    try {
+      const res = await fetch('/api/applications/recruiter/', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      });
+
+      if (res.status === 401 || res.status === 403) {
+        document.getElementById('loginNotice').style.display = 'block';
+        document.getElementById('loginNotice').textContent = 'You do not have permission to view this page.';
+        container.innerHTML = '';
+        return;
+      }
+
+      const apps = await res.json();
+
+      if (!apps.length) {
+        container.innerHTML = '<div class="empty">No applications yet for your job postings.</div>';
+        return;
+      }
+
+      container.innerHTML = apps.map(app => `
+        <div class="app-card" data-app-id="${app.id}">
+          <div class="app-top">
+            <div>
+              <div class="candidate-name">${app.candidate_username}</div>
+              <div class="candidate-email">${app.candidate_email}</div>
+              <div class="job-ref">Applied to: ${app.job_title} at ${app.company_name}</div>
+            </div>
+          </div>
+          ${app.cover_letter ? `<div class="cover-letter">${app.cover_letter}</div>` : ''}
+          ${app.resume ? `<a class="resume-link" href="${app.resume}" target="_blank">📄 View Resume</a>` : `<div class="no-resume">No resume attached</div>`}
+          <div class="status-row">
+            <span class="status-badge status-${app.status}" id="badge-${app.id}">${app.status}</span>
+            <select class="status-select" onchange="updateStatus(${app.id}, this.value)">
+              <option value="pending" ${app.status === 'pending' ? 'selected' : ''}>Pending</option>
+              <option value="reviewed" ${app.status === 'reviewed' ? 'selected' : ''}>Reviewed</option>
+              <option value="shortlisted" ${app.status === 'shortlisted' ? 'selected' : ''}>Shortlisted</option>
+              <option value="rejected" ${app.status === 'rejected' ? 'selected' : ''}>Rejected</option>
+            </select>
+            <span class="save-msg" id="msg-${app.id}">Saved</span>
+          </div>
+        </div>
+      `).join('');
+    } catch (err) {
+      container.innerHTML = '<div class="empty">Could not load applicants. Try refreshing.</div>';
+    }
+  }
+
+  async function updateStatus(appId, newStatus) {
+    const badge = document.getElementById('badge-' + appId);
+    const msg = document.getElementById('msg-' + appId);
+
+    try {
+      const res = await fetch('/api/applications/' + appId + '/update-status/', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token,
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (res.ok) {
+        badge.textContent = newStatus;
+        badge.className = 'status-badge status-' + newStatus;
+        msg.style.display = 'inline';
+        setTimeout(() => { msg.style.display = 'none'; }, 1500);
+      } else {
+        alert('Could not update status. Try again.');
+      }
+    } catch (err) {
+      alert('Something went wrong. Try again.');
+    }
+  }
+</script>
+</body>
+</html>

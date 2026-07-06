@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SecureHire AI — Browse Jobs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0E1A2B;
+    --surface: #152238;
+    --border: #22314A;
+    --text: #EAEDF2;
+    --muted: #8B96A8;
+    --gold: #D4A24E;
+    --teal: #4FA490;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--ink);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 56px 24px;
+  }
+  .wrap { max-width: 820px; margin: 0 auto; }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--teal);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  h1 { font-family: 'Fraunces', serif; font-size: 34px; font-weight: 600; margin-bottom: 8px; }
+  .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 40px; }
+  .job-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 16px;
+    transition: border-color 0.15s ease;
+  }
+  .job-card:hover { border-color: var(--teal); }
+  .job-top { display: flex; justify-content: space-between; align-items: start; gap: 16px; }
+  .job-title { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+  .job-company { color: var(--gold); font-size: 14px; font-weight: 500; }
+  .job-type-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--teal);
+    background: rgba(79, 164, 144, 0.12);
+    padding: 4px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .job-meta { display: flex; gap: 16px; margin-top: 12px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
+  .job-desc { margin-top: 14px; font-size: 14px; color: var(--text); line-height: 1.6; }
+  .job-skills { margin-top: 14px; font-size: 12px; color: var(--muted); }
+  .job-skills strong { color: var(--text); }
+  .empty-state { text-align: center; padding: 60px 24px; color: var(--muted); }
+  .loading { text-align: center; padding: 40px; color: var(--muted); font-family: 'IBM Plex Mono', monospace; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Open positions</div>
+  <h1>Browse jobs</h1>
+  <p class="subtitle">Verified listings from recruiters on SecureHire AI</p>
+
+  <div id="jobsContainer">
+    <div class="loading">Loading jobs...</div>
+  </div>
+</div>
+
+<script>
+  async function loadJobs() {
+    const container = document.getElementById('jobsContainer');
+    try {
+      const res = await fetch('/api/jobs/list/');
+      const jobs = await res.json();
+
+      if (jobs.length === 0) {
+        container.innerHTML = '<div class="empty-state">No open positions right now. Check back soon.</div>';
+        return;
+      }
+
+      container.innerHTML = jobs.map(job => `
+        <div class="job-card">
+          <div class="job-top">
+            <div>
+              <div class="job-title">${job.title}</div>
+              <div class="job-company">${job.company_name}</div>
+            </div>
+            <span class="job-type-tag">${job.job_type.replace('_', ' ')}</span>
+          </div>
+          <div class="job-meta">
+            <span>📍 ${job.location}</span>
+            ${job.salary_min && job.salary_max ? `<span>💰 ₹${job.salary_min} - ₹${job.salary_max}</span>` : ''}
+          </div>
+          <div class="job-desc">${job.description}</div>
+          ${job.skills_required ? `<div class="job-skills"><strong>Skills:</strong> ${job.skills_required}</div>` : ''}
+        </div>
+      `).join('');
+    } catch (err) {
+      container.innerHTML = '<div class="empty-state">Something went wrong loading jobs.</div>';
+    }
+  }
+
+  loadJobs();
+</script>
+</body>
+</html>
